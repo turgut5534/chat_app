@@ -7,19 +7,28 @@ const db = require('../db/db')
 const bodyParser = require('body-parser')
 const hash = require('bcrypt')
 const { body, validationResult } = require('express-validator')
-const passport = require('passport')
+const passport = require('./utils/passport')
 const LocalStrategy = require('passport-local').Strategy;
+const session = require('express-session');
 
 const app = express()
 const server = http.createServer(app)
 const io = socketio(server)
-app.use(require('express-session')({
+
+app.use(session({
     secret: 'secret',
     resave: false,
     saveUninitialized: false
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use((req, res, next) => {
+    res.locals.user = req.user;
+    next();
+  });
+
 
 const port = process.env.PORT || 3000
 const publicDirectory = path.join(__dirname, '../public')
@@ -33,7 +42,8 @@ hbs.registerPartials(partialsPath)
 app.use(express.static(publicDirectory))
 app.use(bodyParser.urlencoded({extended: true}))
 
-app.get('/', (req,res) => {
+app.get('/',  (req,res) => {
+
     res.render('index')
 })
 
@@ -45,7 +55,14 @@ app.get('/login', (req,res) => {
     res.render('login')
 })
 
-app.post('/login', [
+app.post('/login',
+    passport.authenticate('local', {
+        successRedirect: '/',
+        failureRedirect: '/login'
+    })
+);
+
+app.post('/register', [
     body('name').notEmpty(),
     body('email').notEmpty(),
     body('passport').notEmpty(),
@@ -98,6 +115,19 @@ app.post('/login', [
     res.json({
         status: true,
         message: 'User registered successfully'
+    })
+})
+
+app.get('/logout', (req,res) => {
+
+    req.logout((err) => {
+        if(err) {
+            return next(err)
+        }
+    });
+    res.json({
+        status : true,
+        message : 'Logout is successful'
     })
 })
 

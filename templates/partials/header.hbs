@@ -1,6 +1,12 @@
 <header>
     <ul>
-        <li><a class="login-link" href="/login">Login</a></li>
-        <li><a class="register-link" href="/register">Register</a></li>
+        {{#if user}}
+        <li><a class="logout-link" href="/logout">Logout</a></li>
+
+        {{else}}
+            <li><a class="login-link" href="/login">Login</a></li>
+            <li><a class="register-link" href="/register">Register</a></li>
+        {{/if}}
+
     </ul>
 </header>
