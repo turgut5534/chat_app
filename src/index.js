@@ -71,6 +71,18 @@ app.post('/login', [
     }
 
     try {
+
+        const emailQuery = `SELECT * FROM users WHERE email=$1`;
+        const emailValue = [email]
+        const { rows:user } = await db.query(emailQuery, emailValue)
+
+        if(user.length > 0) {
+            return res.json({
+                status : false,
+                message : "A user with this email already registered"
+            })
+        }
+
         const newPassword = await hash.hash(passport, 10)
         const queryText = `INSERT INTO users (name, email, passport) VALUES ($1, $2, $3)`;
         const values = [name, email, newPassword]
