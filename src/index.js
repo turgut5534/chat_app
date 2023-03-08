@@ -7,10 +7,19 @@ const db = require('../db/db')
 const bodyParser = require('body-parser')
 const hash = require('bcrypt')
 const { body, validationResult } = require('express-validator')
+const passport = require('passport')
+const LocalStrategy = require('passport-local').Strategy;
 
 const app = express()
 const server = http.createServer(app)
 const io = socketio(server)
+app.use(require('express-session')({
+    secret: 'secret',
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 const port = process.env.PORT || 3000
 const publicDirectory = path.join(__dirname, '../public')
@@ -78,9 +87,6 @@ app.post('/login', [
         status: true,
         message: 'User registered successfully'
     })
-
-    
-
 })
 
 server.listen(port, () => {
