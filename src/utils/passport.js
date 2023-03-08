@@ -12,7 +12,6 @@ passport.use(new LocalStrategy({
     if (!user || !user.rows || user.rows.length === 0) {
         return done(null, false, { message: 'Incorrect email or password.' });
     }
-    // return console.log(user.rows[0])
     const hashedPassword = user.rows[0].passport
     const passwordMatch = await bcrypt.compare(password.toString(), hashedPassword.toString());
     if (!passwordMatch) {

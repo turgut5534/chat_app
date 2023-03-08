@@ -55,13 +55,25 @@ app.get('/login', (req,res) => {
     res.render('login')
 })
 
-app.post('/login',
-    passport.authenticate('local', {
-        successRedirect: '/',
-        failureRedirect: '/login'
-    })
-);
+app.post('/login', function(req, res, next) {
+    passport.authenticate('local', function(err, user, info) {
+      if (err) { return next(err); }
 
+      const { email, password } = req.body
+
+      if(!email || !password) {
+        return res.status(401).json({ message: 'All inputs are required.' });
+      }
+
+      if (!user) {
+        return res.status(401).json({ message: 'Incorrect email or password.' });
+      }
+      req.logIn(user, function(err) {
+        if (err) { return next(err); }
+        return res.status(200).json({ message: 'Login successful!' });
+      });
+    })(req, res, next);
+  });
 app.post('/register', [
     body('name').notEmpty(),
     body('email').notEmpty(),
