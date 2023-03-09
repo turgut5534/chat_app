@@ -29,6 +29,7 @@ app.use((req, res, next) => {
     next();
   });
 
+  
 
 const port = process.env.PORT || 3000
 const publicDirectory = path.join(__dirname, '../public')
@@ -42,9 +43,20 @@ hbs.registerPartials(partialsPath)
 app.use(express.static(publicDirectory))
 app.use(bodyParser.urlencoded({extended: true}))
 
-app.get('/',  (req,res) => {
 
-    res.render('index')
+app.get('/',  async(req,res) => {
+
+    // if(!req.isAuthenticated()) {
+    //     return res.redirect('/login')
+    // }
+
+    const query = `SELECT * FROM users;`
+    const { rows:users } = await db.query(query)
+    
+    
+    res.render('index', {
+        users: users
+    })
 })
 
 app.get('/register', (req,res) => {
@@ -142,6 +154,43 @@ app.get('/logout', (req,res) => {
         message : 'Logout is successful'
     })
 })
+
+app.post('/message', async(req,res) => {
+
+    const data = req.body
+
+    try {
+
+        const queryText = `INSERT INTO messages(sender_id, recipient_id, message, sent_at)
+        VALUES($1, $2, $3, $4)`
+        const values = [ data.id ,data.recipient_id ,data.message, new Date()]
+
+        await db.query(queryText, values)
+        console.log('Message saved')
+
+        io.emit('message', data)
+
+    } catch(error) {
+        
+        res.sendStatus(500);
+        return console.log('error',error);
+    }
+
+})
+
+app.get('/messages/:user', (req,res) => {
+
+    // io.join(req.params.user)
+
+    res.render('messages', {
+        recipient_id : req.params.user
+    })
+})
+
+io.on('connection', () =>{
+    console.log('a user is connected')
+})
+  
 
 server.listen(port, () => {
     console.log(`Server is up on ${port}`)

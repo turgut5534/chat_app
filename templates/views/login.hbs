@@ -58,6 +58,10 @@
                   message: response.message,
               });
 
+              setTimeout(() => {
+                location.href = '/'
+              }, 2000)
+
         },
         error :function(xhr, status, error) {
 
